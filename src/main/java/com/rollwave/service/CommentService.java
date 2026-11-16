@@ -16,7 +16,7 @@ import com.rollwave.entity.Skatepark;
 import com.rollwave.exception.InvalidContentException;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CommentService {
@@ -42,8 +42,8 @@ public class CommentService {
 		return modelMapper.map(commentDto, Comment.class);
 	}
 
-	@Transactional(rollbackOn = Exception.class)
-	public List<CommentDto> getCommentsByUserIdAndBySkateparkId(Integer userId, Integer skateparkId) {
+	@Transactional
+	public List<CommentDto> getAllCommentsByUserIdAndBySkateparkId(Integer userId, Integer skateparkId) {
 
 		if (!appUserDao.existsById(userId)) {
 			throw new EntityNotFoundException("Utilisateur introuvable : " + userId);
@@ -52,33 +52,29 @@ public class CommentService {
 			throw new EntityNotFoundException("Skatepark introuvable : " + skateparkId);
 		}
 
-		return commentDao.findByUserIdandSkateparkId(userId, skateparkId).stream().map(this::convertToDto).toList();
+		return commentDao.findAllByUserIdandSkateparkId(userId, skateparkId).stream().map(this::convertToDto).toList();
 	}
 
-	@Transactional(rollbackOn = Exception.class)
-	public CommentDto getCommentByIdAndUserId(Integer commentId, Integer userId) {
-		if (!appUserDao.existsById(userId)) {
-			throw new EntityNotFoundException("Utilisateur introuvable : " + userId);
-		}
+	@Transactional(readOnly = true)
+	public CommentDto getCommentByIdAndUserIdAndSkateparkId(Integer commentId, Integer userId, Integer skateparkId) {
 
-		Comment comment = commentDao.findByIdAndUserId(commentId, userId);
-		if (!commentDao.existsById(userId)) {
-			throw new EntityNotFoundException("Commentaire introuvable : " + commentId);
-		}
+		Comment comment = commentDao.findByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId)
+				.orElseThrow(() -> new EntityNotFoundException("Commentaire introuvable : " + commentId));
 
 		return convertToDto(comment);
 	}
 
-	@Transactional(rollbackOn = Exception.class)
-	public List<CommentDto> getCommentsBySkateparkIdOrderByCreatedAtDesc(Integer skateparkId) {
+	@Transactional
+	public List<CommentDto> getAllCommentsBySkateparkIdOrderByCreatedAtDesc(Integer skateparkId) {
 		if (!skateparkDao.existsById(skateparkId)) {
 			throw new EntityNotFoundException("Skatepark introuvable : " + skateparkId);
 		}
 
-		return commentDao.findBySkateparkIdOrderByCreatedAtDesc(skateparkId).stream().map(this::convertToDto).toList();
+		return commentDao.findAllBySkateparkIdOrderByCreatedAtDesc(skateparkId).stream().map(this::convertToDto)
+				.toList();
 	}
 
-	@Transactional(rollbackOn = Exception.class)
+	@Transactional
 	public BigDecimal getCountBySkateparkId(Integer skateparkId) {
 
 		if (!skateparkDao.existsById(skateparkId)) {
@@ -88,8 +84,8 @@ public class CommentService {
 		return commentDao.countBySkateparkId(skateparkId);
 	}
 
-	// TODO Create
-	@Transactional(rollbackOn = Exception.class)
+
+	@Transactional
 	public CommentDto create(Integer skateparkId, Integer userId, CommentDto commentDto)
 			throws InvalidContentException {
 		Comment comment = convertToEntity(commentDto);
@@ -109,8 +105,8 @@ public class CommentService {
 
 	}
 
-	// TODO Delete
-	@Transactional(rollbackOn = Exception.class)
+	
+	@Transactional
 	public void delete(Integer skateparkId, Integer userId, Integer commentId) {
 		int deleted = commentDao.deletedByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId);
 		if (deleted == 0) {
@@ -120,9 +116,9 @@ public class CommentService {
 		}
 	}
 
-	// TODO Update
-	@Transactional(rollbackOn = Exception.class)
-	public CommentDto udpate(Integer commentId, Integer skateparkId, Integer userId, CommentDto commentDto) {
+	
+	@Transactional
+	public CommentDto update(Integer commentId, Integer skateparkId, Integer userId, CommentDto commentDto) {
 
 		Comment comment = commentDao.findByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId)
 				.orElseThrow(() -> new EntityNotFoundException("commentaire introuvable:" + commentId));
