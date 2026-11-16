@@ -99,7 +99,7 @@ public class CommentService {
 		Skatepark skatepark = skateparkDao.findById(skateparkId)
 				.orElseThrow(() -> new EntityNotFoundException("skatepark introuvable:" + skateparkId));
 		validationComment(comment);
-		comment.setId(null); 
+		comment.setId(null);
 		comment.setSkatepark(skatepark);
 		comment.setUser(user);
 
@@ -114,16 +114,22 @@ public class CommentService {
 	public void delete(Integer skateparkId, Integer userId, Integer commentId) {
 		int deleted = commentDao.deletedByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId);
 		if (deleted == 0) {
-			throw new EntityNotFoundException("Aucun commentaire n'a été trouvé pour cet id là:" + commentId + "lié à l'utilisateur:"
-					+ userId + "et au skatepark:" + skateparkId);
+			throw new EntityNotFoundException("Aucun commentaire n'a été trouvé pour cet id là:" + commentId
+					+ "lié à l'utilisateur:" + userId + "et au skatepark:" + skateparkId);
 
 		}
 	}
 
 	// TODO Update
 	@Transactional(rollbackOn = Exception.class)
-	public CommentDto udpate(Integer skateparkId, Integer userId, CommentDto commentDto) {
-		
+	public CommentDto udpate(Integer commentId, Integer skateparkId, Integer userId, CommentDto commentDto) {
+
+		Comment comment = commentDao.findByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId)
+				.orElseThrow(() -> new EntityNotFoundException("commentaire introuvable:" + commentId));
+
+		comment.setContent(commentDto.getContent());
+		validationComment(comment);
+		return convertToDto(commentDao.save(comment));
 	}
 
 	// =============================

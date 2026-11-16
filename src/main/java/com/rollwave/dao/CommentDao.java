@@ -2,6 +2,7 @@ package com.rollwave.dao;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -23,7 +24,7 @@ public interface CommentDao extends JpaRepository<Comment, Integer> {
 	//TODO
 	List<Comment> findByUserIdOrderByCreatedAtDesc(Integer userId);
 	
-	Comment findByIdAndUserIdAndSkateparkId(Integer id, Integer userId, Integer skateparkId);
+	Optional<Comment> findByIdAndUserIdAndSkateparkId(Integer id, Integer userId, Integer skateparkId);
 
 	Comment findByIdAndUserId(Integer id, Integer userId);
 

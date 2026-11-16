@@ -34,9 +34,12 @@ public class CommentController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(created);
 	}
 	
-	//TODO getCommentsByUserIdAndBySkateparkId
 	//TODO getCommentByIdAndUserId
+	//TODO getCommentsByIdAndUserIdAndBySkateparkId
 	//TODO getCommentsBySkateparkIdOrderByCreatedAtDesc
+	//TODO getCommentsByUserIdOrderByCreatedAtDesc
+	//TODO getCommentsByUserIdAndSkateparkId
+	//TODO getCountBySkateparkId
 	//TODO Update
 	//TODO Delete
 }
