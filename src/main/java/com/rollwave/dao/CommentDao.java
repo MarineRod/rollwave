@@ -16,17 +16,17 @@ import jakarta.transaction.Transactional;
 public interface CommentDao extends JpaRepository<Comment, Integer> {
 
 	
-	List<Comment> findAllByUserIdandSkateparkId(Integer userId, Integer skateparkId);
+	List<Comment> findAllByUserIdAndSkateparkId(Integer userId, Integer skateparkId);
 
 	
-	List<Comment> findAllBySkateparkIdOrderByCreatedAtDesc(Integer skateparkId);
+	List<Comment> findAllBySkateparkIdOrderByDateDesc(Integer skateparkId);
 
 	//TODO
-	List<Comment> findByUserIdOrderByCreatedAtDesc(Integer userId);
+	List<Comment> findByUserIdOrderByDateDesc(Integer userId);
 	
 	Optional<Comment> findByIdAndUserIdAndSkateparkId(Integer id, Integer userId, Integer skateparkId);
 	
 	BigDecimal countBySkateparkId(Integer skateparkId);
 	
-	int deletedByIdAndUserIdAndSkateparkId(Integer commentId, Integer userId, Integer skateparkId);
+	int deleteByIdAndUserIdAndSkateparkId(Integer commentId, Integer userId, Integer skateparkId);
 }

@@ -55,7 +55,7 @@ public class CommentController {
 	@GetMapping("/skateparks/{skateparkId}/comments")
 	public ResponseEntity<List<CommentDto>> getAllCommentsBySkatepark(@PathVariable Integer skateparkId) {
 
-		List<CommentDto> comments = commentService.getAllCommentsBySkateparkIdOrderByCreatedAtDesc(skateparkId);
+		List<CommentDto> comments = commentService.getAllCommentsBySkateparkIdOrderByDateCreationDesc(skateparkId);
 		return new ResponseEntity<>(comments, HttpStatus.OK);
 	}
 

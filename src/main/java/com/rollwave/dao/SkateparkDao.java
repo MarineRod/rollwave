@@ -14,10 +14,9 @@ import jakarta.transaction.Transactional;
 @Transactional
 public interface SkateparkDao extends JpaRepository<Skatepark, Integer> {
 
-	Optional<Skatepark> findByGooglePlaceId(String googlePlaceId);
-	boolean existsByGooglePlaceId(String googlePlaceId); // éviter les doublons à l'import Google
-	List<Skatepark> findByNameContainingIgnoreCase(String name);
-	List<Skatepark> findByAddressContainingIgnoreCase(String address);
+	//Optional<Skatepark> findByGooglePlaceId(String googlePlaceId);
+	//boolean existsByGooglePlaceId(String googlePlaceId); // éviter les doublons à l'import Google
+	List<Skatepark> findByAdressContainingIgnoreCase(String address);
 	List<Skatepark> findByUserIsNull(); 
 	
 	// Spots dans une zone rectangulaire (par exemple l'écran visible de la carte)

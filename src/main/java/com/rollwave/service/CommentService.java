@@ -52,7 +52,7 @@ public class CommentService {
 			throw new EntityNotFoundException("Skatepark introuvable : " + skateparkId);
 		}
 
-		return commentDao.findAllByUserIdandSkateparkId(userId, skateparkId).stream().map(this::convertToDto).toList();
+		return commentDao.findAllByUserIdAndSkateparkId(userId, skateparkId).stream().map(this::convertToDto).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -65,12 +65,12 @@ public class CommentService {
 	}
 
 	@Transactional
-	public List<CommentDto> getAllCommentsBySkateparkIdOrderByCreatedAtDesc(Integer skateparkId) {
+	public List<CommentDto> getAllCommentsBySkateparkIdOrderByDateCreationDesc(Integer skateparkId) {
 		if (!skateparkDao.existsById(skateparkId)) {
 			throw new EntityNotFoundException("Skatepark introuvable : " + skateparkId);
 		}
 
-		return commentDao.findAllBySkateparkIdOrderByCreatedAtDesc(skateparkId).stream().map(this::convertToDto)
+		return commentDao.findAllBySkateparkIdOrderByDateDesc(skateparkId).stream().map(this::convertToDto)
 				.toList();
 	}
 
@@ -108,7 +108,7 @@ public class CommentService {
 	
 	@Transactional
 	public void delete(Integer skateparkId, Integer userId, Integer commentId) {
-		int deleted = commentDao.deletedByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId);
+		int deleted = commentDao.deleteByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId);
 		if (deleted == 0) {
 			throw new EntityNotFoundException("Aucun commentaire n'a été trouvé pour cet id là:" + commentId
 					+ "lié à l'utilisateur:" + userId + "et au skatepark:" + skateparkId);

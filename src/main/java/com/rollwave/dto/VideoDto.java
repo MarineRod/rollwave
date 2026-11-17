@@ -14,7 +14,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class VideoDto {
