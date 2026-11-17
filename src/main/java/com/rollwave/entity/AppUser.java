@@ -51,8 +51,8 @@ public class AppUser implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
-		return null;
+		// Pas de rôles pour le moment
+		return List.of();
 	}
 
 	@Override
