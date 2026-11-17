@@ -14,6 +14,6 @@ import jakarta.transaction.Transactional;
 public interface TrickDao extends JpaRepository<Trick, Integer> {
 
 	List<Trick> findByUserId(Integer userId);
-	List<Trick> findByLevel(String difficulty);
+	List<Trick> findByLevel(String level);
 	List<Trick> findByNameContainingIgnoreCase(String name);
 }
