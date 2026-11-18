@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -27,9 +27,6 @@ jobs:
 
       - name: Compiler et lancer les tests
         run: ./mvnw -B clean verify
-        env:
-          SECURITY_JWT_SECRETKEY: ${{ secrets.JWT_SECRET_KEY }}
-          SECURITY_JWT_EXPIRATIONTIME: 3600000
 
       - name: Conserver le .jar produit
         uses: actions/upload-artifact@v4
@@ -37,3 +34,14 @@ jobs:
           name: rollwave-jar
           path: target/*.jar
           retention-days: 7
+
+  deploy:
+    name: Déploiement sur Render
+    needs: build
+    runs-on: ubuntu-latest
+    # Uniquement après un push sur main (jamais pour une pull request)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Déclencher le déploiement Render
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
