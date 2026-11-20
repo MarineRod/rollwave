@@ -21,34 +21,26 @@ import com.rollwave.security.JwtService;
 public class AuthenticationService {
 
 	private final AppUserDao appUserDao;
-	private final PasswordEncoder passwordEncoder;
+	private final AppUserService appUserService;
 	private final AuthenticationManager authenticationManager;
 	private final JwtService jwtService;
 	private final ModelMapper modelMapper;
 
-	public AuthenticationService(AppUserDao appUserDao, PasswordEncoder passwordEncoder,
+	public AuthenticationService(AppUserDao appUserDao, AppUserService appUserService,
 			AuthenticationManager authenticationManager, JwtService jwtService, ModelMapper modelMapper) {
+		super();
 		this.appUserDao = appUserDao;
-		this.passwordEncoder = passwordEncoder;
+		this.appUserService = appUserService;
 		this.authenticationManager = authenticationManager;
 		this.jwtService = jwtService;
 		this.modelMapper = modelMapper;
 	}
 
 	public AppUserDto signup(RegisterUserDto input) {
-		String email = normalize(input.email());
-
-		if (appUserDao.findByEmail(email).isPresent()) {
+		if (appUserDao.findByEmail(normalize(input.email())).isPresent()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cet email est déjà utilisé");
 		}
-
-		AppUser user = new AppUser();
-		user.setFirstName(input.firstName());
-		user.setLastName(input.lastName());
-		user.setEmail(email);
-		user.setPassword(passwordEncoder.encode(input.password()));
-
-		AppUser saved = appUserDao.save(user);
+		AppUser saved = appUserService.createUser(input.firstName(), input.lastName(), input.email(), input.password());
 		return modelMapper.map(saved, AppUserDto.class);
 	}
 
