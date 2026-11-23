@@ -1,0 +1,31 @@
+name: User story
+description: Une fonctionnalité du point de vue de l'utilisateur
+title: "[Domaine] "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User story
+      description: Qui, quoi, pourquoi.
+      value: |
+        **En tant que** ...
+        **je veux** ...
+        **afin de** ...
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Critères d'acceptation
+      description: Les conditions qui rendent la story terminée.
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes techniques
+      description: Routes, classes concernées, points d'attention (facultatif).
