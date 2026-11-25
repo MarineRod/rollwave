@@ -1,5 +1,7 @@
 package com.rollwave.dto;
 
+import com.rollwave.enums.SkateparkType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,8 +16,8 @@ import lombok.Setter;
 public class SkateparkDto {
 	private Integer id;
 	private String name;
+	private SkateparkType type;
 	private String adress;
-	private String description;
 	private String latitude;
 	private String longitude;
 

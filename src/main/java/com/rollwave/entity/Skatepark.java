@@ -2,8 +2,12 @@ package com.rollwave.entity;
 
 import java.util.List;
 
+import com.rollwave.enums.SkateparkType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,33 +31,33 @@ public class Skatepark {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
-	@Column(unique = true)
-    private String name;
-	
+
+	private String name;
+
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private String adress;
+	private SkateparkType type;
 
 	@Column(nullable = false)
-	private String description;
+	private String adress;
 
 	@Column(nullable = false)
 	private double latitude;
 
 	@Column(nullable = false)
 	private double longitude;
-	
-	@Column(unique = true)
-    private String externalId;
 
-	//one to many comment
-	@OneToMany(mappedBy ="skatepark")
+	@Column(unique = true)
+	private String externalId;
+
+	// one to many comment
+	@OneToMany(mappedBy = "skatepark")
 	private List<Comment> comments;
-	//many to one user
+	// many to one user
 	@ManyToOne
-	@JoinColumn(name ="user_id")
+	@JoinColumn(name = "user_id")
 	private AppUser user;
-	//one to many video
-	@OneToMany(mappedBy ="skatepark")
+	// one to many video
+	@OneToMany(mappedBy = "skatepark")
 	private List<Video> videos;
 }

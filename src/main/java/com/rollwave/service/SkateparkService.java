@@ -1,84 +1,148 @@
 package com.rollwave.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Optional;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.server.ResponseStatusException;
 
-import com.rollwave.component.OverpassClient;
 import com.rollwave.dao.SkateparkDao;
-import com.rollwave.dto.OverpassDtos.OverpassElement;
 import com.rollwave.dto.SkateparkDto;
 import com.rollwave.entity.Skatepark;
+import com.rollwave.enums.SkateparkType;
 
 @Service
 public class SkateparkService {
 
-	private static final double MIN_RADIUS_METERS = 100;
-	private static final double MAX_RADIUS_METERS = 20_000;
+    private static final Logger log = LoggerFactory.getLogger(SkateparkService.class);
 
-	private final ModelMapper modelMapper;
-	private final SkateparkDao skateparkDao;
-	private final OverpassClient overpassClient;
+    private static final double MIN_RADIUS_METERS = 100;
+    private static final double MAX_RADIUS_METERS = 20_000;
+    private static final double METERS_PER_DEGREE = 111_320;
 
-	public SkateparkService(SkateparkDao skateparkDao, ModelMapper modelMapper, OverpassClient overpassClient) {
-		this.skateparkDao = skateparkDao;
-		this.modelMapper = modelMapper;
-		this.overpassClient = overpassClient;
-	}
+    private final SkateparkDao skateparkDao;
+    private final ModelMapper modelMapper;
 
-	/**
-	     * Récupère les skateparks autour d'une position depuis OpenStreetMap,
-	     * les enregistre ou les met à jour en base, puis les renvoie.
-	     * Si Overpass ne répond pas, renvoie une erreur 503.
-	     */
-	    @Transactional
-	    public List<SkateparkDto> findNearby(double latitude, double longitude, double radiusMeters) {
-	        double radius = Math.clamp(radiusMeters, MIN_RADIUS_METERS, MAX_RADIUS_METERS);
+    public SkateparkService(SkateparkDao skateparkDao, ModelMapper modelMapper) {
+        this.skateparkDao = skateparkDao;
+        this.modelMapper = modelMapper;
+    }
 
-	        List<OverpassElement> elements;
-	        try {
-	            elements = overpassClient.findSkateparks(latitude, longitude, radius);
-	        } catch (RestClientException e) {
-	            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-	                    "Le service de cartographie est momentanément indisponible, réessayez plus tard");
-	        }
+    // ---------- Recherche autour d'une position ----------
 
-	        return elements.stream()
-	                .map(this::saveOrUpdate)
-	                .map(skatepark -> modelMapper.map(skatepark, SkateparkDto.class))
-	                .toList();
-	    }
+    /**
+     * Renvoie les skateparks situés dans un carré centré sur la position,
+     * de côté égal à deux fois le rayon.
+     */
+    @Transactional(readOnly = true)
+    public List<SkateparkDto> findNearby(double latitude, double longitude, double radiusMeters) {
+        double radius = Math.clamp(radiusMeters, MIN_RADIUS_METERS, MAX_RADIUS_METERS);
+        double deltaLat = radius / METERS_PER_DEGREE;
+        double deltaLng = radius / (METERS_PER_DEGREE * Math.cos(Math.toRadians(latitude)));
 
-	// ---------- Méthodes privées ----------
+        return skateparkDao.findByLatitudeBetweenAndLongitudeBetween(
+                        latitude - deltaLat, latitude + deltaLat,
+                        longitude - deltaLng, longitude + deltaLng)
+                .stream()
+                .map(skatepark -> modelMapper.map(skatepark, SkateparkDto.class))
+                .toList();
+    }
 
-	private Skatepark saveOrUpdate(OverpassElement element) {
-		String externalId = "osm:" + element.type() + "/" + element.id();
-		Skatepark skatepark = skateparkDao.findByExternalId(externalId).orElseGet(Skatepark::new);
+    // ---------- Import du fichier Data ES ----------
 
-		String name = element.tag("name");
-		skatepark.setExternalId(externalId);
-		skatepark.setName(name != null ? name : "Skatepark");
-		skatepark.setAdress(buildAddress(element));
-		skatepark.setLatitude(element.latitude());
-		skatepark.setLongitude(element.longitude());
-		// user reste null : spot importé, retrouvé par findByUserIsNull()
+    /**
+     * Lit le fichier CSV Data ES et enregistre ou met à jour chaque équipement.
+     * Renvoie le nombre de lignes enregistrées.
+     */
+    @Transactional
+    public int importFromCsv(InputStream inputStream) throws IOException {
+        CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setDelimiter(';')
+                .setHeader()                 // la première ligne donne le nom des colonnes
+                .setSkipHeaderRecord(true)
+                .setIgnoreEmptyLines(true)
+                .setTrim(true)
+                .get();
 
-		return skateparkDao.save(skatepark);
-	}
+        int imported = 0;
+        try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+             CSVParser parser = CSVParser.parse(reader, format)) {
 
-	private String buildAddress(OverpassElement element) {
-		String address = Stream.of(element.tag("addr:housenumber"), element.tag("addr:street"),
-				element.tag("addr:postcode"), element.tag("addr:city")).filter(Objects::nonNull)
-				.collect(Collectors.joining(" "));
+            for (CSVRecord row : parser) {
+                Double[] position = readPosition(row);
+                if (position == null) {
+                    log.warn("Ligne {} ignorée : coordonnées absentes", row.getRecordNumber());
+                    continue;
+                }
+                if (saveOrUpdate(row, position[0], position[1])) {
+                    imported++;
+                }
+            }
+        }
+        return imported;
+    }
 
-		return address.isBlank() ? "Adresse non renseignée" : address;
-	}
+    // ---------- Méthodes privées ----------
+
+    private boolean saveOrUpdate(CSVRecord row, double latitude, double longitude) {
+        Optional<SkateparkType> type = SkateparkType.fromLabel(row.get("type"));
+        if (type.isEmpty()) {
+            log.warn("Ligne {} ignorée : type inconnu « {} »", row.getRecordNumber(), row.get("type"));
+            return false;
+        }
+
+        String externalId = "dataes:" + row.get("numero");
+        Skatepark skatepark = skateparkDao.findByExternalId(externalId)
+                .orElseGet(Skatepark::new);
+
+        String name = row.get("nom");
+        skatepark.setExternalId(externalId);
+        skatepark.setName(name.isBlank() ? type.get().getLabel() : name);
+        skatepark.setType(type.get());
+        skatepark.setAdress("Adresse non renseignée");
+        skatepark.setLatitude(latitude);
+        skatepark.setLongitude(longitude);
+        // user reste null : spot officiel, retrouvé par findByUserIsNull()
+
+        skateparkDao.save(skatepark);
+        return true;
+    }
+
+    /** Renvoie {latitude, longitude}, ou null si la ligne n'a pas de coordonnées exploitables. */
+    private Double[] readPosition(CSVRecord row) {
+        Double latitude = parseDouble(row.get("coordonnees_y"));
+        Double longitude = parseDouble(row.get("coordonnees_x"));
+
+        if (latitude == null || longitude == null) {
+            // Solution de secours : la colonne "coordonnees" au format "43.622811, 1.47956"
+            String[] parts = row.get("coordonnees").split(",");
+            if (parts.length == 2) {
+                latitude = parseDouble(parts[0]);
+                longitude = parseDouble(parts[1]);
+            }
+        }
+        return (latitude == null || longitude == null) ? null : new Double[] { latitude, longitude };
+    }
+
+    private Double parseDouble(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Double.valueOf(value.trim().replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }

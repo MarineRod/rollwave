@@ -20,4 +20,7 @@ public interface SkateparkDao extends JpaRepository<Skatepark, Integer> {
 	//List<Skatepark> findByUserIsNull(); 
 	
 	Optional<Skatepark> findByExternalId(String externalId);
+	
+	List<Skatepark> findByLatitudeBetweenAndLongitudeBetween(
+	        Double minLat, Double maxLat, Double minLng, Double maxLng);
 }
