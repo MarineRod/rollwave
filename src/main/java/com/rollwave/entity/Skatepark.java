@@ -27,7 +27,10 @@ public class Skatepark {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-
+	
+	@Column(unique = true)
+    private String name;
+	
 	@Column(nullable = false)
 	private String adress;
 
@@ -35,10 +38,13 @@ public class Skatepark {
 	private String description;
 
 	@Column(nullable = false)
-	private String latitude;
+	private double latitude;
 
 	@Column(nullable = false)
-	private String longitude;
+	private double longitude;
+	
+	@Column(unique = true)
+    private String externalId;
 
 	//one to many comment
 	@OneToMany(mappedBy ="skatepark")

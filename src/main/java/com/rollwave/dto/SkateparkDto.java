@@ -1,8 +1,5 @@
 package com.rollwave.dto;
 
-import com.rollwave.entity.Skatepark;
-
-import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SkateparkDto {
 	private Integer id;
+	private String name;
 	private String adress;
 	private String description;
 	private String latitude;
