@@ -40,7 +40,6 @@ public class CommentController {
 		return new ResponseEntity<>(created, HttpStatus.OK);
 	}
 
-	
 	// Modifier son commentaire sur un skatepark
 	@PutMapping("/skateparks/{skateparkId}/comments/{commentId}")
 	public ResponseEntity<CommentDto> update(@PathVariable Integer skateparkId, @PathVariable Integer commentId,
@@ -68,23 +67,24 @@ public class CommentController {
 
 	// Commentaires d'un utilisateur sur un skatepark
 	@GetMapping("/skateparks/{skateparkId}/users/{userId}/comments")
-	public ResponseEntity<List<CommentDto>> getAllByUserAndSkatepark(@PathVariable Integer skateparkId, @RequestParam Integer userId) {
+	public ResponseEntity<List<CommentDto>> getAllByUserAndSkatepark(@PathVariable Integer skateparkId,
+			@RequestParam Integer userId) {
 		List<CommentDto> comments = commentService.getAllCommentsByUserIdAndBySkateparkId(userId, skateparkId);
 		return new ResponseEntity<>(comments, HttpStatus.OK);
 	}
 
-
-
-	//Un commentaire précis, s'il appartient à l'utilisateur
+	// Un commentaire précis, s'il appartient à l'utilisateur
 	@GetMapping("/skateparks/{skateparkId}/comments/{commentId}")
-	public ResponseEntity<CommentDto> getComment(@PathVariable Integer commentId, @RequestParam Integer userId, @PathVariable Integer skateparkId) {
+	public ResponseEntity<CommentDto> getComment(@PathVariable Integer commentId, @RequestParam Integer userId,
+			@PathVariable Integer skateparkId) {
 		CommentDto comment = commentService.getCommentByIdAndUserIdAndSkateparkId(commentId, userId, skateparkId);
 		return new ResponseEntity<>(comment, HttpStatus.OK);
 	}
 
-	//TODO Supprimer son commentaire
+	// TODO Supprimer son commentaire
 	@DeleteMapping("/skateparks/{skateparkId}/comments/{commentId}")
-	public ResponseEntity<Void> delete(@PathVariable Integer commentId, @PathVariable Integer skateparkId, @RequestParam Integer userId) {
+	public ResponseEntity<Void> delete(@PathVariable Integer commentId, @PathVariable Integer skateparkId,
+			@RequestParam Integer userId) {
 		commentService.delete(userId, commentId, skateparkId);
 		return ResponseEntity.noContent().build();
 	}

@@ -1,17 +1,22 @@
 package com.rollwave.component;
 
-
 import java.io.InputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import com.rollwave.service.SkateparkService;
 
+/**
+ * Importe les skateparks du fichier CSV au démarrage. Désactivé avec le profil
+ * "geocode", où seul l'outil d'enrichissement doit tourner.
+ */
 @Component
+@Profile("!geocode")
 public class SkateparkImporter implements CommandLineRunner {
 
 	private static final Logger log = LoggerFactory.getLogger(SkateparkImporter.class);

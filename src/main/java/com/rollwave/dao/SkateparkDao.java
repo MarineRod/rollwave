@@ -23,4 +23,14 @@ public interface SkateparkDao extends JpaRepository<Skatepark, Integer> {
 	
 	List<Skatepark> findByLatitudeBetweenAndLongitudeBetween(
 	        Double minLat, Double maxLat, Double minLng, Double maxLng);
+	
+	 // Tous les skateparks d'une commune, par code INSEE
+    List<Skatepark> findByCityCode(String cityCode);
+
+    // Tous les skateparks d'une ville, par nom exact (sans tenir compte des majuscules)
+    List<Skatepark> findByCityIgnoreCase(String city);
+
+    // Solution de secours : villes dont le nom contient le texte saisi
+    List<Skatepark> findByCityContainingIgnoreCase(String city);
+
 }

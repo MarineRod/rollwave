@@ -11,9 +11,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,6 +39,14 @@ public class Skatepark {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private SkateparkType type;
+
+	@Column(length = 10)
+	private String postcode; // code postal, ex. "31000"
+
+	private String city; // ville, ex. "Toulouse"
+
+	@Column(length = 10)
+	private String cityCode;
 
 	@Column(nullable = false)
 	private String adress;
